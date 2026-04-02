@@ -103,6 +103,8 @@ def make_service_lifespan(config: ServerConfig) -> Any:
             config.read_only,
         )
 
+        # Probe uses a short-lived client; the long-lived service client is
+        # created below so it starts in a clean, unopened state.
         async with httpx.AsyncClient(
             base_url=config.kroki_url,
             timeout=30.0,
@@ -151,4 +153,4 @@ def get_available_types(ctx: Context = CurrentContext()) -> frozenset[str]:
     available = ctx.lifespan_context.get("available")
     if available is None:
         return frozenset(DIAGRAM_TYPES)
-    return available  # type: ignore[return-value]
+    return available  # type: ignore[no-any-return]

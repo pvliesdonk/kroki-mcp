@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import httpx
-import pytest
 import respx
 
 from kroki_mcp._diagram_types import DIAGRAM_TYPES
@@ -130,7 +129,7 @@ class TestProbeAvailableTypes:
         """Probe only returns keys that exist in DIAGRAM_TYPES."""
         from kroki_mcp._server_deps import _probe_available_types
 
-        version_keys = {k: "1.0" for k in DIAGRAM_TYPES}
+        version_keys = dict.fromkeys(DIAGRAM_TYPES, "1.0")
         version_keys["unknown_future_type"] = "2.0"
         health_body = {"status": "pass", "version": version_keys}
 
