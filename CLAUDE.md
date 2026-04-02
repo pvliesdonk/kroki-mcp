@@ -1,18 +1,19 @@
 # kroki-mcp
 
-FastMCP server scaffold. See [TEMPLATE.md](TEMPLATE.md) for customisation guide.
+MCP server wrapping a self-hosted Kroki instance for diagram rendering.
 
 ## Project Structure
 
 ```
 src/kroki_mcp/
   mcp_server.py        -- FastMCP server factory + auth wiring (don't modify)
-  config.py            -- env var loading; add domain config fields here
+  config.py            -- env var loading; KROKI_MCP_BASE_URL + read_only
   cli.py               -- CLI entry point (serve command)
-  _server_deps.py      -- lifespan + Depends() DI; replace placeholder service
-  _server_tools.py     -- MCP tools; replace example tools with domain tools
-  _server_resources.py -- MCP resources; add domain resources here
-  _server_prompts.py   -- MCP prompts; add domain prompts here
+  _server_deps.py      -- lifespan: httpx.AsyncClient → Kroki
+  _server_tools.py     -- render_diagram, list_diagram_types
+  _server_resources.py -- kroki://health resource
+  _server_prompts.py   -- diagram_helper prompt
+  _diagram_types.py    -- static registry of Kroki diagram types
 ```
 
 ## Conventions
@@ -27,7 +28,9 @@ src/kroki_mcp/
 
 ## Key Patterns
 
-- Library is sync; MCP layer uses `asyncio.to_thread()` for blocking calls
-- Write tools tagged `tags={"write"}`, hidden via `mcp.disable(tags={"write"})` in read-only mode
+- Service object is `httpx.AsyncClient` with `base_url` pointed at Kroki
+- All tools are read-only — Kroki is a rendering service with no write operations
+- Diagram type validation uses static `DIAGRAM_TYPES` registry in `_diagram_types.py`
 - Auth: `_build_bearer_auth()` + `_build_oidc_auth()` called in `create_server()`; MultiAuth when both set
-- `_ENV_PREFIX` in `config.py` controls all env var names — change once, affects everything
+- `_ENV_PREFIX` in `config.py` is `KROKI_MCP` — controls all env var names
+- FastMCP 3.x API: use `server._lifespan_manager()` (not `test_client()`) in tests; `result.content[0]` for tool results; `result.contents[0].content` for resource results
