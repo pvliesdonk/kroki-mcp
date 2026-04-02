@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
 ]
-dependencies = []
+dependencies = ["httpx"]
 
 [project.optional-dependencies]
 mcp = ["fastmcp>=3.0,<4", "httpx", "uvicorn"]
@@ -28,6 +28,7 @@ dev = [
     "ruff>=0.1",
     "mypy>=1.0",
     "pip-audit>=2.7",
+    "respx",
 ]
 docs = [
     "mkdocs-material>=9.5",
