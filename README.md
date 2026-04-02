@@ -62,6 +62,7 @@ The server supports bearer token and OIDC auth for HTTP transport:
 | Variable | Description |
 |----------|-------------|
 | `KROKI_MCP_BEARER_TOKEN` | Static bearer token |
+| `KROKI_MCP_BASE_URL` | Public server URL — **required for OIDC** (e.g. `https://mcp.example.com`) |
 | `KROKI_MCP_OIDC_CONFIG_URL` | OIDC discovery endpoint |
 | `KROKI_MCP_OIDC_CLIENT_ID` | OIDC client ID |
 | `KROKI_MCP_OIDC_CLIENT_SECRET` | OIDC client secret |

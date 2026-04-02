@@ -40,8 +40,7 @@ def register_resources(mcp: FastMCP) -> None:
             response.raise_for_status()
             return json.dumps({"status": "ok", "kroki_url": base_url})
         except (
-            httpx.ConnectError,
-            httpx.TimeoutException,
+            httpx.TransportError,
             httpx.HTTPStatusError,
         ) as exc:
             return json.dumps(
