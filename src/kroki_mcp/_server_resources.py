@@ -1,20 +1,20 @@
-"""MCP resource registrations.
+"""MCP resource registrations — Kroki health check.
 
-TODO: Add your domain resources here.
-
-Resources expose read-only structured data to LLM clients via URI patterns.
-See https://gofastmcp.com/servers/resources for the full resource API.
-
-Example::
-
-    @mcp.resource("info://service")
-    async def service_info(ctx: Context = Depends(get_service)) -> str:
-        return json.dumps({"status": "ok", "version": "1.0"})
+Exposes ``kroki://health`` to check Kroki instance reachability.
 """
 
 from __future__ import annotations
 
+import json
+import logging
+
+import httpx
 from fastmcp import FastMCP
+from fastmcp.dependencies import Depends
+
+from ._server_deps import get_service
+
+logger = logging.getLogger(__name__)
 
 
 def register_resources(mcp: FastMCP) -> None:
@@ -23,4 +23,25 @@ def register_resources(mcp: FastMCP) -> None:
     Args:
         mcp: The :class:`~fastmcp.FastMCP` instance to register resources on.
     """
-    # TODO: Add your domain resources here.
+
+    @mcp.resource("kroki://health")
+    async def health(
+        client: httpx.AsyncClient = Depends(get_service),
+    ) -> str:
+        """Check if the Kroki instance is reachable.
+
+        Returns:
+            JSON with ``status`` (``"ok"`` or ``"unreachable"``),
+            ``kroki_url``, and optionally ``error``.
+        """
+        base_url = str(client.base_url)
+        try:
+            response = await client.get("/")
+            response.raise_for_status()
+            return json.dumps({"status": "ok", "kroki_url": base_url})
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPStatusError) as exc:
+            return json.dumps({
+                "status": "unreachable",
+                "kroki_url": base_url,
+                "error": str(exc),
+            })
