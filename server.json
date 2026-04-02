@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.pvliesdonk/kroki-mcp",
   "title": "Kroki MCP Server",
-  "description": "FastMCP server template — replace this with your description",
+  "description": "MCP server wrapping a self-hosted Kroki instance for diagram rendering. Supports 29+ diagram types (PlantUML, Mermaid, GraphViz, D2, and more).",
   "version": "0.1.0",
   "repository": {
     "url": "https://github.com/pvliesdonk/kroki-mcp",
@@ -17,6 +17,11 @@
         "type": "stdio"
       },
       "environmentVariables": [
+        {
+          "name": "KROKI_MCP_BASE_URL",
+          "description": "URL of the self-hosted Kroki instance (e.g. http://localhost:8000)",
+          "required": true
+        },
         {
           "name": "KROKI_MCP_READ_ONLY",
           "description": "Set to 'false' to enable write tools (default: true)",
@@ -47,6 +52,11 @@
       ],
       "environmentVariables": [
         {
+          "name": "KROKI_MCP_BASE_URL",
+          "description": "URL of the self-hosted Kroki instance (e.g. http://localhost:8000)",
+          "required": true
+        },
+        {
           "name": "KROKI_MCP_READ_ONLY",
           "description": "Set to 'false' to enable write tools (default: true)",
           "required": false,
@@ -55,11 +65,6 @@
         {
           "name": "KROKI_MCP_BEARER_TOKEN",
           "description": "Static bearer token for authentication (optional)",
-          "required": false
-        },
-        {
-          "name": "KROKI_MCP_BASE_URL",
-          "description": "Public base URL of this server, required for OIDC (e.g. https://mcp.example.com)",
           "required": false
         },
         {
