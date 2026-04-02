@@ -18,7 +18,7 @@ def mock_kroki() -> respx.MockRouter:
     """Create a respx mock router for Kroki API calls."""
     health_body = {
         "status": "pass",
-        "version": {k: "1.0.0" for k in DIAGRAM_TYPES},
+        "version": dict.fromkeys(DIAGRAM_TYPES, "1.0.0"),
     }
     with respx.mock(base_url="http://kroki.test:8000") as router:
         router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
@@ -202,7 +202,9 @@ class TestAvailableFiltering:
             "version": {"graphviz": "9.0.0", "mermaid": "11.0.0"},
         }
         with respx.mock(base_url="http://kroki.test:8000") as router:
-            router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
+            router.get("/health").mock(
+                return_value=httpx.Response(200, json=health_body)
+            )
             server = create_server()
             async with server._lifespan_manager():
                 result = await server.call_tool("list_diagram_types", {})
@@ -217,7 +219,9 @@ class TestAvailableFiltering:
             "version": {"graphviz": "9.0.0"},
         }
         with respx.mock(base_url="http://kroki.test:8000") as router:
-            router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
+            router.get("/health").mock(
+                return_value=httpx.Response(200, json=health_body)
+            )
             server = create_server()
             async with server._lifespan_manager():
                 result = await server.call_tool(
