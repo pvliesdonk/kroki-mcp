@@ -74,11 +74,12 @@ class ServerConfig:
     Attributes:
         read_only: When ``True`` (default), write-tagged tools are hidden via
             ``mcp.disable(tags={"write"})``.
-        kroki_base_url: URL of the self-hosted Kroki instance.
+        kroki_url: Base URL of the self-hosted Kroki instance, always with a
+            trailing slash so httpx resolves subpath-relative requests correctly.
     """
 
     read_only: bool = True
-    kroki_base_url: str = ""
+    kroki_url: str = ""
 
 
 def load_config() -> ServerConfig:
@@ -87,25 +88,30 @@ def load_config() -> ServerConfig:
     Reads:
 
     - ``KROKI_MCP_READ_ONLY``: disable write tools; default ``true``.
-    - ``KROKI_MCP_BASE_URL``: URL of the self-hosted Kroki instance (required).
+    - ``KROKI_MCP_KROKI_URL``: base URL of the self-hosted Kroki instance
+      (required).
 
     Returns:
         A populated :class:`ServerConfig` instance.
 
     Raises:
-        ValueError: If ``KROKI_MCP_BASE_URL`` is unset or empty.
+        ValueError: If ``KROKI_MCP_KROKI_URL`` is unset or empty.
     """
     raw_read_only = _env("READ_ONLY")
     read_only = _parse_bool(raw_read_only) if raw_read_only is not None else True
     logger.debug("load_config: read_only=%s (raw=%r)", read_only, raw_read_only)
 
-    raw_base_url = (_env("BASE_URL") or "").strip().rstrip("/")
-    if not raw_base_url:
+    raw_kroki_url = (_env("KROKI_URL") or "").strip()
+    if not raw_kroki_url:
         msg = (
-            "KROKI_MCP_BASE_URL is required. "
+            "KROKI_MCP_KROKI_URL is required. "
             "Set it to the URL of your self-hosted Kroki instance "
             "(e.g. http://localhost:8000)."
         )
         raise ValueError(msg)
+    # Normalise: always end with a trailing slash so httpx merges relative
+    # request paths (e.g. "plantuml/svg") correctly, even when Kroki is
+    # mounted on a subpath like http://host/kroki/.
+    kroki_url = raw_kroki_url.rstrip("/") + "/"
 
-    return ServerConfig(read_only=read_only, kroki_base_url=raw_base_url)
+    return ServerConfig(read_only=read_only, kroki_url=kroki_url)

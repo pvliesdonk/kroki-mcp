@@ -21,7 +21,7 @@ class TestServiceLifespan:
         """get_service() should return an httpx.AsyncClient."""
         from kroki_mcp._server_deps import make_service_lifespan
 
-        config = ServerConfig(kroki_base_url="http://kroki.test:8000")
+        config = ServerConfig(kroki_url="http://kroki.test:8000/")
         lifespan_fn = make_service_lifespan(config)
 
         from fastmcp import FastMCP

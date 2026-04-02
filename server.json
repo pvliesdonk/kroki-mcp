@@ -18,7 +18,7 @@
       },
       "environmentVariables": [
         {
-          "name": "KROKI_MCP_BASE_URL",
+          "name": "KROKI_MCP_KROKI_URL",
           "description": "URL of the self-hosted Kroki instance (e.g. http://localhost:8000)",
           "required": true
         },
@@ -52,7 +52,7 @@
       ],
       "environmentVariables": [
         {
-          "name": "KROKI_MCP_BASE_URL",
+          "name": "KROKI_MCP_KROKI_URL",
           "description": "URL of the self-hosted Kroki instance (e.g. http://localhost:8000)",
           "required": true
         },

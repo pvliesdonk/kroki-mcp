@@ -8,7 +8,7 @@ Supports 29+ diagram types including PlantUML, Mermaid, GraphViz, D2, DBML, ERD,
 
 ```bash
 # Set the Kroki instance URL
-export KROKI_MCP_BASE_URL=http://localhost:8000
+export KROKI_MCP_KROKI_URL=http://localhost:8000
 
 # Install and run (stdio transport)
 pip install kroki-mcp[mcp]
@@ -19,7 +19,7 @@ kroki-mcp serve
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `KROKI_MCP_BASE_URL` | **Yes** | — | URL of your self-hosted Kroki instance (e.g. `http://localhost:8000`) |
+| `KROKI_MCP_KROKI_URL` | **Yes** | — | URL of your self-hosted Kroki instance (e.g. `http://localhost:8000`) |
 | `KROKI_MCP_READ_ONLY` | No | `true` | Disable write tools |
 | `KROKI_MCP_LOG_LEVEL` | No | `INFO` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
 | `KROKI_MCP_SERVER_NAME` | No | `kroki-mcp` | Server name shown to clients |
@@ -72,7 +72,7 @@ See [Authentication guide](docs/guides/authentication.md) for full setup details
 ## Docker
 
 ```bash
-export KROKI_MCP_BASE_URL=http://kroki:8000
+export KROKI_MCP_KROKI_URL=http://kroki:8000
 docker compose up -d
 ```
 

@@ -79,15 +79,15 @@ def register_tools(mcp: FastMCP, *, transport: str = "stdio") -> None:
 
         try:
             response = await client.post(
-                f"/{diagram_type}/{output_format}",
+                f"{diagram_type}/{output_format}",
                 content=source,
                 headers={"Content-Type": "text/plain"},
             )
-        except httpx.ConnectError:
+        except httpx.TransportError as exc:
             base_url = str(client.base_url)
+            if isinstance(exc, httpx.TimeoutException):
+                return "Kroki did not respond within 30s"
             return f"Cannot reach Kroki at {base_url} — is it running?"
-        except httpx.TimeoutException:
-            return "Kroki did not respond within 30s"
 
         if response.status_code == 400:
             return response.text

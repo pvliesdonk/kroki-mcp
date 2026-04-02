@@ -36,7 +36,7 @@ def register_resources(mcp: FastMCP) -> None:
         """
         base_url = str(client.base_url)
         try:
-            response = await client.get("/")
+            response = await client.get("")
             response.raise_for_status()
             return json.dumps({"status": "ok", "kroki_url": base_url})
         except (

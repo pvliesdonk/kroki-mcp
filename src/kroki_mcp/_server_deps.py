@@ -47,12 +47,12 @@ def make_service_lifespan(config: ServerConfig) -> Any:
         """Initialise the httpx client at startup, close on shutdown."""
         logger.info(
             "Kroki client starting (base_url=%s, read_only=%s)",
-            config.kroki_base_url,
+            config.kroki_url,
             config.read_only,
         )
 
         client = httpx.AsyncClient(
-            base_url=config.kroki_base_url,
+            base_url=config.kroki_url,
             timeout=30.0,
         )
 

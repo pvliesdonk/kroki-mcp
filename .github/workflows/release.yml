@@ -192,7 +192,7 @@ jobs:
             type=raw,value=v${{ steps.version.outputs.major }}
           labels: |
             org.opencontainers.image.title=kroki-mcp
-            org.opencontainers.image.description=FastMCP server template
+            org.opencontainers.image.description=MCP server wrapping a self-hosted Kroki instance for diagram rendering
             org.opencontainers.image.vendor=pvliesdonk
 
       - name: Build and push Docker image
