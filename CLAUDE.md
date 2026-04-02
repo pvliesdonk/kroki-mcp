@@ -7,7 +7,7 @@ MCP server wrapping a self-hosted Kroki instance for diagram rendering.
 ```
 src/kroki_mcp/
   mcp_server.py        -- FastMCP server factory + auth wiring (don't modify)
-  config.py            -- env var loading; KROKI_MCP_BASE_URL + read_only
+  config.py            -- env var loading; KROKI_MCP_KROKI_URL + read_only
   cli.py               -- CLI entry point (serve command)
   _server_deps.py      -- lifespan: httpx.AsyncClient → Kroki
   _server_tools.py     -- render_diagram, list_diagram_types
