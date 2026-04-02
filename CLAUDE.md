@@ -1,11 +1,11 @@
-# fastmcp-server-template
+# kroki-mcp
 
 FastMCP server scaffold. See [TEMPLATE.md](TEMPLATE.md) for customisation guide.
 
 ## Project Structure
 
 ```
-src/fastmcp_server_template/
+src/kroki_mcp/
   mcp_server.py        -- FastMCP server factory + auth wiring (don't modify)
   config.py            -- env var loading; add domain config fields here
   cli.py               -- CLI entry point (serve command)

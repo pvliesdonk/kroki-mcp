@@ -1,4 +1,4 @@
-# fastmcp-server-template
+# kroki-mcp
 
 > **This is a template repository.** Click "Use this template" to create your own MCP server, then follow [TEMPLATE.md](TEMPLATE.md) to customise it.
 
@@ -15,31 +15,31 @@ A production-ready [FastMCP](https://gofastmcp.com) server scaffold with batteri
 
 ```bash
 # Install and run (stdio transport)
-pip install fastmcp-server-template[mcp]
-mcp-server serve
+pip install kroki-mcp[mcp]
+kroki-mcp serve
 
 # Or with HTTP transport
-mcp-server serve --transport http --port 8000
+kroki-mcp serve --transport http --port 8000
 ```
 
 ## Configuration
 
-All configuration is via environment variables prefixed with `MCP_SERVER_`:
+All configuration is via environment variables prefixed with `KROKI_MCP_`:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MCP_SERVER_READ_ONLY` | `true` | Disable write tools |
-| `MCP_SERVER_LOG_LEVEL` | `INFO` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
-| `MCP_SERVER_SERVER_NAME` | `mcp-server` | Server name shown to clients |
-| `MCP_SERVER_INSTRUCTIONS` | (dynamic) | System instructions for LLM context |
-| `MCP_SERVER_HTTP_PATH` | `/mcp` | Mount path for HTTP transport |
+| `KROKI_MCP_READ_ONLY` | `true` | Disable write tools |
+| `KROKI_MCP_LOG_LEVEL` | `INFO` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
+| `KROKI_MCP_SERVER_NAME` | `kroki-mcp` | Server name shown to clients |
+| `KROKI_MCP_INSTRUCTIONS` | (dynamic) | System instructions for LLM context |
+| `KROKI_MCP_HTTP_PATH` | `/mcp` | Mount path for HTTP transport |
 
 ## Authentication
 
 The server supports four auth modes:
 
 1. **Multi-auth** — both bearer token and OIDC configured; either credential accepted
-2. **Bearer token** — set `MCP_SERVER_BEARER_TOKEN` to a secret string
+2. **Bearer token** — set `KROKI_MCP_BEARER_TOKEN` to a secret string
 3. **OIDC** — full OAuth 2.1 flow via `OIDC_CONFIG_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, and `BASE_URL`
 4. **No auth** — server accepts all connections (default)
 
@@ -47,12 +47,12 @@ The server supports four auth modes:
 
 | Variable | Description |
 |----------|-------------|
-| `MCP_SERVER_BEARER_TOKEN` | Static bearer token |
-| `MCP_SERVER_BASE_URL` | Public base URL — required for OIDC (e.g. `https://mcp.example.com`) |
-| `MCP_SERVER_OIDC_CONFIG_URL` | OIDC discovery endpoint |
-| `MCP_SERVER_OIDC_CLIENT_ID` | OIDC client ID |
-| `MCP_SERVER_OIDC_CLIENT_SECRET` | OIDC client secret |
-| `MCP_SERVER_OIDC_JWT_SIGNING_KEY` | JWT signing key — **required on Linux/Docker** to survive restarts |
+| `KROKI_MCP_BEARER_TOKEN` | Static bearer token |
+| `KROKI_MCP_BASE_URL` | Public base URL — required for OIDC (e.g. `https://mcp.example.com`) |
+| `KROKI_MCP_OIDC_CONFIG_URL` | OIDC discovery endpoint |
+| `KROKI_MCP_OIDC_CLIENT_ID` | OIDC client ID |
+| `KROKI_MCP_OIDC_CLIENT_SECRET` | OIDC client secret |
+| `KROKI_MCP_OIDC_JWT_SIGNING_KEY` | JWT signing key — **required on Linux/Docker** to survive restarts |
 
 See [Authentication guide](docs/guides/authentication.md) for full setup details.
 
