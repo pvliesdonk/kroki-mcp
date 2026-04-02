@@ -105,10 +105,7 @@ def load_config() -> ServerConfig:
 
     raw_kroki_url = (_env("KROKI_URL") or "").strip()
     using_public = not raw_kroki_url
-    if using_public:
-        kroki_url = _PUBLIC_KROKI_URL
-    else:
-        kroki_url = raw_kroki_url.rstrip("/") + "/"
+    kroki_url = _PUBLIC_KROKI_URL if using_public else raw_kroki_url.rstrip("/") + "/"
 
     return ServerConfig(
         read_only=read_only,
