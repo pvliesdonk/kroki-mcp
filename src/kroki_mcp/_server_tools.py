@@ -15,7 +15,7 @@ from fastmcp.dependencies import Depends
 from fastmcp.utilities.types import Image
 
 from ._diagram_types import DIAGRAM_TYPES
-from ._server_deps import get_service
+from ._server_deps import get_available_types, get_service
 
 logger = logging.getLogger(__name__)
 
@@ -29,15 +29,19 @@ def register_tools(mcp: FastMCP, *, transport: str = "stdio") -> None:
     """
 
     @mcp.tool()
-    def list_diagram_types() -> str:
+    def list_diagram_types(
+        available: frozenset[str] = Depends(get_available_types),
+    ) -> str:
         """List all supported diagram types and their output formats.
 
         Returns:
-            JSON array of objects with ``type`` and ``formats`` keys.
+            JSON array of objects with ``type`` and ``formats`` keys, filtered
+            to only include types available on this Kroki instance.
         """
         entries = [
             {"type": dtype, "formats": formats}
             for dtype, formats in sorted(DIAGRAM_TYPES.items())
+            if dtype in available
         ]
         return json.dumps(entries)
 
@@ -48,6 +52,7 @@ def register_tools(mcp: FastMCP, *, transport: str = "stdio") -> None:
         output_format: str = "svg",
         as_base64: bool = False,
         client: httpx.AsyncClient = Depends(get_service),
+        available: frozenset[str] = Depends(get_available_types),
     ) -> str | Image:
         """Render a diagram using Kroki.
 
@@ -64,10 +69,10 @@ def register_tools(mcp: FastMCP, *, transport: str = "stdio") -> None:
         """
         diagram_type = diagram_type.lower().strip()
 
-        if diagram_type not in DIAGRAM_TYPES:
+        if diagram_type not in available:
             return (
                 f"Unknown diagram type '{diagram_type}'. "
-                "Use list_diagram_types to see available types."
+                "Use list_diagram_types to see what is available on this instance."
             )
 
         supported = DIAGRAM_TYPES[diagram_type]

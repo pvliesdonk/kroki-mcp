@@ -9,13 +9,19 @@ import httpx
 import pytest
 import respx
 
+from kroki_mcp._diagram_types import DIAGRAM_TYPES
 from kroki_mcp.mcp_server import create_server
 
 
 @pytest.fixture()
 def mock_kroki() -> respx.MockRouter:
     """Create a respx mock router for Kroki API calls."""
+    health_body = {
+        "status": "pass",
+        "version": {k: "1.0.0" for k in DIAGRAM_TYPES},
+    }
     with respx.mock(base_url="http://kroki.test:8000") as router:
+        router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
         yield router
 
 
@@ -186,3 +192,51 @@ class TestRenderDiagram:
             )
             assert route.called
             assert result.content[0].text == "<svg>mermaid</svg>"
+
+
+class TestAvailableFiltering:
+    async def test_list_diagram_types_respects_available(self) -> None:
+        """list_diagram_types only returns types present in the health response."""
+        health_body = {
+            "status": "pass",
+            "version": {"graphviz": "9.0.0", "mermaid": "11.0.0"},
+        }
+        with respx.mock(base_url="http://kroki.test:8000") as router:
+            router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
+            server = create_server()
+            async with server._lifespan_manager():
+                result = await server.call_tool("list_diagram_types", {})
+                data = json.loads(result.content[0].text)
+                types = {entry["type"] for entry in data}
+                assert types == {"graphviz", "mermaid"}
+
+    async def test_render_diagram_type_not_in_available(self) -> None:
+        """render_diagram rejects a type absent from the health-derived available set."""
+        health_body = {
+            "status": "pass",
+            "version": {"graphviz": "9.0.0"},
+        }
+        with respx.mock(base_url="http://kroki.test:8000") as router:
+            router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
+            server = create_server()
+            async with server._lifespan_manager():
+                result = await server.call_tool(
+                    "render_diagram",
+                    {"diagram_type": "mermaid", "source": "graph TD; A-->B"},
+                )
+                assert "Unknown diagram type" in result.content[0].text
+
+    async def test_render_diagram_type_in_available(
+        self, mock_kroki: respx.MockRouter
+    ) -> None:
+        """render_diagram succeeds for a type present in the available set."""
+        mock_kroki.post("/graphviz/svg").mock(
+            return_value=httpx.Response(200, text="<svg>ok</svg>")
+        )
+        server = create_server()
+        async with server._lifespan_manager():
+            result = await server.call_tool(
+                "render_diagram",
+                {"diagram_type": "graphviz", "source": "digraph { a -> b }"},
+            )
+            assert result.content[0].text == "<svg>ok</svg>"
