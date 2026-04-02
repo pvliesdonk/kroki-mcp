@@ -21,12 +21,34 @@ class TestKrokiUrl:
         config = load_config()
         assert config.kroki_url == "http://localhost:8000/"
 
-    def test_url_missing_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_url_missing_uses_public_default(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         monkeypatch.delenv("KROKI_MCP_KROKI_URL", raising=False)
-        with pytest.raises(ValueError, match="KROKI_MCP_KROKI_URL"):
-            load_config()
+        config = load_config()
+        assert config.kroki_url == "https://kroki.io/"
 
-    def test_url_empty_raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_url_empty_uses_public_default(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
         monkeypatch.setenv("KROKI_MCP_KROKI_URL", "  ")
-        with pytest.raises(ValueError, match="KROKI_MCP_KROKI_URL"):
-            load_config()
+        config = load_config()
+        assert config.kroki_url == "https://kroki.io/"
+
+    def test_using_public_instance_true_when_no_url(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.delenv("KROKI_MCP_KROKI_URL", raising=False)
+        config = load_config()
+        assert config.using_public_instance is True
+
+    def test_using_public_instance_false_when_url_set(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("KROKI_MCP_KROKI_URL", "http://localhost:8000")
+        config = load_config()
+        assert config.using_public_instance is False

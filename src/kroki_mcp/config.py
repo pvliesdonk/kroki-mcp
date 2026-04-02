@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # e.g. _ENV_PREFIX = "WEATHER_MCP" → WEATHER_MCP_READ_ONLY, WEATHER_MCP_PORT …
 # ---------------------------------------------------------------------------
 _ENV_PREFIX = "KROKI_MCP"
+_PUBLIC_KROKI_URL = "https://kroki.io/"
 
 
 def get_log_level() -> int:
@@ -74,12 +75,15 @@ class ServerConfig:
     Attributes:
         read_only: When ``True`` (default), write-tagged tools are hidden via
             ``mcp.disable(tags={"write"})``.
-        kroki_url: Base URL of the self-hosted Kroki instance, always with a
-            trailing slash so httpx resolves subpath-relative requests correctly.
+        kroki_url: Base URL of the Kroki instance, always with a trailing slash
+            so httpx resolves subpath-relative requests correctly.
+        using_public_instance: ``True`` when ``KROKI_MCP_KROKI_URL`` was not
+            set and the server is using the public ``https://kroki.io`` fallback.
     """
 
     read_only: bool = True
     kroki_url: str = ""
+    using_public_instance: bool = False
 
 
 def load_config() -> ServerConfig:
@@ -88,30 +92,26 @@ def load_config() -> ServerConfig:
     Reads:
 
     - ``KROKI_MCP_READ_ONLY``: disable write tools; default ``true``.
-    - ``KROKI_MCP_KROKI_URL``: base URL of the self-hosted Kroki instance
-      (required).
+    - ``KROKI_MCP_KROKI_URL``: base URL of the Kroki instance. When unset or
+      empty, defaults to the public ``https://kroki.io`` instance and sets
+      ``using_public_instance=True``.
 
     Returns:
         A populated :class:`ServerConfig` instance.
-
-    Raises:
-        ValueError: If ``KROKI_MCP_KROKI_URL`` is unset or empty.
     """
     raw_read_only = _env("READ_ONLY")
     read_only = _parse_bool(raw_read_only) if raw_read_only is not None else True
     logger.debug("load_config: read_only=%s (raw=%r)", read_only, raw_read_only)
 
     raw_kroki_url = (_env("KROKI_URL") or "").strip()
-    if not raw_kroki_url:
-        msg = (
-            "KROKI_MCP_KROKI_URL is required. "
-            "Set it to the URL of your self-hosted Kroki instance "
-            "(e.g. http://localhost:8000)."
-        )
-        raise ValueError(msg)
-    # Normalise: always end with a trailing slash so httpx merges relative
-    # request paths (e.g. "plantuml/svg") correctly, even when Kroki is
-    # mounted on a subpath like http://host/kroki/.
-    kroki_url = raw_kroki_url.rstrip("/") + "/"
+    using_public = not raw_kroki_url
+    if using_public:
+        kroki_url = _PUBLIC_KROKI_URL
+    else:
+        kroki_url = raw_kroki_url.rstrip("/") + "/"
 
-    return ServerConfig(read_only=read_only, kroki_url=kroki_url)
+    return ServerConfig(
+        read_only=read_only,
+        kroki_url=kroki_url,
+        using_public_instance=using_public,
+    )
