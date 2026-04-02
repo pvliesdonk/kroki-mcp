@@ -77,4 +77,4 @@ def get_service(ctx: Context = CurrentContext()) -> httpx.AsyncClient:
     if service is None:
         msg = "Service not initialised — server lifespan has not run"
         raise RuntimeError(msg)
-    return service
+    return service  # type: ignore[no-any-return]

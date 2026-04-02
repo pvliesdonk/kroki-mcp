@@ -39,9 +39,15 @@ def register_resources(mcp: FastMCP) -> None:
             response = await client.get("/")
             response.raise_for_status()
             return json.dumps({"status": "ok", "kroki_url": base_url})
-        except (httpx.ConnectError, httpx.TimeoutException, httpx.HTTPStatusError) as exc:
-            return json.dumps({
-                "status": "unreachable",
-                "kroki_url": base_url,
-                "error": str(exc),
-            })
+        except (
+            httpx.ConnectError,
+            httpx.TimeoutException,
+            httpx.HTTPStatusError,
+        ) as exc:
+            return json.dumps(
+                {
+                    "status": "unreachable",
+                    "kroki_url": base_url,
+                    "error": str(exc),
+                }
+            )

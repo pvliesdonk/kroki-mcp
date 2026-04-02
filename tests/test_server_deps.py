@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import httpx
-import pytest
 
 from kroki_mcp.config import ServerConfig
 
@@ -18,9 +17,7 @@ class TestServiceLifespan:
             assert server._lifespan_result is not None
             assert isinstance(server._lifespan_result.get("service"), httpx.AsyncClient)
 
-    async def test_service_is_httpx_client(
-        self, monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    async def test_service_is_httpx_client(self) -> None:
         """get_service() should return an httpx.AsyncClient."""
         from kroki_mcp._server_deps import make_service_lifespan
 

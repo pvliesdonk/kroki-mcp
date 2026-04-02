@@ -43,8 +43,7 @@ def _cmd_serve(args: argparse.Namespace) -> None:
         from kroki_mcp.mcp_server import build_event_store, create_server
     except ImportError:
         logger.error(
-            "FastMCP is not installed. Install with: "
-            "pip install kroki-mcp[mcp]"
+            "FastMCP is not installed. Install with: pip install kroki-mcp[mcp]"
         )
         sys.exit(1)
 

@@ -23,9 +23,7 @@ class TestHealthResource:
 
     async def test_health_unreachable(self) -> None:
         with respx.mock(base_url="http://kroki.test:8000") as router:
-            router.get("/").mock(
-                side_effect=httpx.ConnectError("Connection refused")
-            )
+            router.get("/").mock(side_effect=httpx.ConnectError("Connection refused"))
             server = create_server()
             async with server._lifespan_manager():
                 result = await server.read_resource("kroki://health")

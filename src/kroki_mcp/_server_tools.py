@@ -8,12 +8,10 @@ from __future__ import annotations
 import base64
 import json
 import logging
-from typing import Any
 
 import httpx
 from fastmcp import FastMCP
 from fastmcp.dependencies import Depends
-from fastmcp.server.context import Context
 from fastmcp.utilities.types import Image
 
 from ._diagram_types import DIAGRAM_TYPES

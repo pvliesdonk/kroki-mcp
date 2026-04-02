@@ -14,7 +14,8 @@ class TestKrokiBaseUrl:
         assert config.kroki_base_url == "http://localhost:8000"
 
     def test_base_url_strips_trailing_slash(
-        self, monkeypatch: pytest.MonkeyPatch,
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.setenv("KROKI_MCP_BASE_URL", "http://localhost:8000/")
         config = load_config()

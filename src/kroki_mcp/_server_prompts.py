@@ -92,9 +92,9 @@ _SYNTAX_HINTS: dict[str, str] = {
         "```\n"
         "@startuml\n"
         "!include <C4/C4_Context>\n\n"
-        "Person(user, \"User\")\n"
-        "System(system, \"My System\", \"Does things\")\n"
-        "Rel(user, system, \"Uses\")\n"
+        'Person(user, "User")\n'
+        'System(system, "My System", "Does things")\n'
+        'Rel(user, system, "Uses")\n'
         "@enduml\n"
         "```\n\n"
         "Supports: Context, Container, Component, and Deployment diagrams."
@@ -133,7 +133,7 @@ def register_prompts(mcp: FastMCP) -> None:
             f"{hint}\n\n"
             "## Rendering\n\n"
             "Use the `render_diagram` tool to render your diagram:\n"
-            f"- `diagram_type`: `\"{dtype}\"`\n"
+            f'- `diagram_type`: `"{dtype}"`\n'
             "- `source`: your diagram code\n"
-            "- `output_format`: `\"svg\"` (default) or `\"png\"`"
+            '- `output_format`: `"svg"` (default) or `"png"`'
         )
