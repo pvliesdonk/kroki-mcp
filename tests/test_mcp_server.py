@@ -105,13 +105,13 @@ class TestReadOnlyMode:
         """Server is read-only by default — write tools are disabled."""
         server = create_server()
         tool_names = [t.name for t in await server.list_tools()]
-        assert "ping" in tool_names
-        assert "example_write" not in tool_names
+        assert "render_diagram" in tool_names
+        assert "list_diagram_types" in tool_names
 
     async def test_read_write_mode(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Setting READ_ONLY=false makes write tools visible."""
+        """Setting READ_ONLY=false exposes all tools."""
         monkeypatch.setenv("KROKI_MCP_READ_ONLY", "false")
         server = create_server()
         tool_names = [t.name for t in await server.list_tools()]
-        assert "ping" in tool_names
-        assert "example_write" in tool_names
+        assert "render_diagram" in tool_names
+        assert "list_diagram_types" in tool_names

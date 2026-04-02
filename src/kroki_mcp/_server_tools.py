@@ -1,24 +1,22 @@
-"""MCP tool registrations.
+"""MCP tool registrations — Kroki diagram rendering.
 
-TODO: Replace the example tools with your domain tools.
-
-Each tool function is decorated with ``@mcp.tool()`` inside
-:func:`register_tools`.  Write tools should be tagged with
-``tags={"write"}`` so they can be hidden in read-only mode via
-``mcp.disable(tags={"write"})``.
-
-See https://gofastmcp.com/servers/tools for the full tool API.
+Exposes :func:`list_diagram_types` and :func:`render_diagram` tools.
 """
 
 from __future__ import annotations
 
+import base64
+import json
 import logging
 from typing import Any
 
+import httpx
 from fastmcp import FastMCP
 from fastmcp.dependencies import Depends
 from fastmcp.server.context import Context
+from fastmcp.utilities.types import Image
 
+from ._diagram_types import DIAGRAM_TYPES
 from ._server_deps import get_service
 
 logger = logging.getLogger(__name__)
@@ -30,43 +28,79 @@ def register_tools(mcp: FastMCP, *, transport: str = "stdio") -> None:
     Args:
         mcp: The :class:`~fastmcp.FastMCP` instance to register tools on.
         transport: Active transport (``"stdio"``, ``"sse"``, or ``"http"``).
-            Use this to conditionally register HTTP-only tools, e.g.::
-
-                if transport == "http":
-                    @mcp.tool()
-                    def create_download_link(...) -> str: ...
     """
 
-    # -----------------------------------------------------------------------
-    # Example read tool — replace with your domain tools.
-    # -----------------------------------------------------------------------
+    @mcp.tool()
+    def list_diagram_types() -> str:
+        """List all supported diagram types and their output formats.
+
+        Returns:
+            JSON array of objects with ``type`` and ``formats`` keys.
+        """
+        entries = [
+            {"type": dtype, "formats": formats}
+            for dtype, formats in sorted(DIAGRAM_TYPES.items())
+        ]
+        return json.dumps(entries)
 
     @mcp.tool()
-    def ping(ctx: Context = Depends(get_service)) -> str:
-        """Health check.
-
-        Returns:
-            The string ``'pong'``.
-        """
-        return "pong"
-
-    # -----------------------------------------------------------------------
-    # Example write tool — tagged so it can be hidden in read-only mode.
-    # -----------------------------------------------------------------------
-
-    @mcp.tool(tags={"write"})
-    def example_write(
-        message: str,
-        ctx: Any = Depends(get_service),
-    ) -> str:
-        """Example write operation — replace with your domain write tools.
+    async def render_diagram(
+        diagram_type: str,
+        source: str,
+        output_format: str = "svg",
+        as_base64: bool = False,
+        client: httpx.AsyncClient = Depends(get_service),
+    ) -> str | Image:
+        """Render a diagram using Kroki.
 
         Args:
-            message: The message to echo back.
+            diagram_type: Diagram language (e.g. ``"plantuml"``, ``"mermaid"``,
+                ``"graphviz"``). Use ``list_diagram_types`` to see all options.
+            source: The diagram source code.
+            output_format: Output format — ``"svg"`` (default) or ``"png"``.
+            as_base64: When True and format is ``"png"``, return a base64
+                string instead of an MCP Image.
 
         Returns:
-            Confirmation string.
+            SVG string, MCP Image (PNG), or base64 string (PNG + as_base64).
         """
-        # TODO: Replace with your actual write logic.
-        logger.info("example_write called: %r", message)
-        return f"wrote: {message}"
+        diagram_type = diagram_type.lower().strip()
+
+        if diagram_type not in DIAGRAM_TYPES:
+            return (
+                f"Unknown diagram type '{diagram_type}'. "
+                "Use list_diagram_types to see available types."
+            )
+
+        supported = DIAGRAM_TYPES[diagram_type]
+        if output_format not in supported:
+            return (
+                f"'{output_format}' is not supported for '{diagram_type}'. "
+                f"Supported: {', '.join(supported)}"
+            )
+
+        try:
+            response = await client.post(
+                f"/{diagram_type}/{output_format}",
+                content=source,
+                headers={"Content-Type": "text/plain"},
+            )
+        except httpx.ConnectError:
+            base_url = str(client.base_url)
+            return f"Cannot reach Kroki at {base_url} — is it running?"
+        except httpx.TimeoutException:
+            return "Kroki did not respond within 30s"
+
+        if response.status_code == 400:
+            return response.text
+        if response.status_code >= 400:
+            return f"Kroki returned an error: {response.status_code} {response.text}"
+
+        if output_format == "svg":
+            return response.text
+
+        # PNG
+        png_bytes = response.content
+        if as_base64:
+            return base64.b64encode(png_bytes).decode()
+        return Image(data=png_bytes, format="png")
