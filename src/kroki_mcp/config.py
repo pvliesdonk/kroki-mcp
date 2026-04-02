@@ -71,43 +71,41 @@ def _parse_bool(value: str) -> bool:
 class ServerConfig:
     """Server configuration loaded from environment variables.
 
-    Add your domain-specific fields here.  Use :func:`load_config` to
-    populate them from environment variables at startup.
-
     Attributes:
         read_only: When ``True`` (default), write-tagged tools are hidden via
             ``mcp.disable(tags={"write"})``.
-
-    Example::
-
-        # TODO: replace with your domain fields, e.g.:
-        # data_dir: Path = Path("/data")
-        # max_results: int = 50
+        kroki_base_url: URL of the self-hosted Kroki instance.
     """
 
     read_only: bool = True
+    kroki_base_url: str = ""
 
 
 def load_config() -> ServerConfig:
     """Load configuration from environment variables.
 
-    Currently reads:
+    Reads:
 
     - ``KROKI_MCP_READ_ONLY``: disable write tools; default ``true``.
-
-    TODO: Add your domain-specific env vars here and populate the
-    corresponding :class:`ServerConfig` fields.
+    - ``KROKI_MCP_BASE_URL``: URL of the self-hosted Kroki instance (required).
 
     Returns:
         A populated :class:`ServerConfig` instance.
 
-    Example::
-
-        config = load_config()
-        # config.read_only == True by default
+    Raises:
+        ValueError: If ``KROKI_MCP_BASE_URL`` is unset or empty.
     """
     raw_read_only = _env("READ_ONLY")
     read_only = _parse_bool(raw_read_only) if raw_read_only is not None else True
     logger.debug("load_config: read_only=%s (raw=%r)", read_only, raw_read_only)
 
-    return ServerConfig(read_only=read_only)
+    raw_base_url = (_env("BASE_URL") or "").strip().rstrip("/")
+    if not raw_base_url:
+        msg = (
+            "KROKI_MCP_BASE_URL is required. "
+            "Set it to the URL of your self-hosted Kroki instance "
+            "(e.g. http://localhost:8000)."
+        )
+        raise ValueError(msg)
+
+    return ServerConfig(read_only=read_only, kroki_base_url=raw_base_url)
