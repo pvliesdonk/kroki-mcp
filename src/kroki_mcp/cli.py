@@ -1,7 +1,7 @@
-"""Command-line interface for mcp-server.
+"""Command-line interface for kroki-mcp.
 
 Provides a ``serve`` subcommand.  The entry point is :func:`main`,
-registered as ``mcp-server`` in ``pyproject.toml``.
+registered as ``kroki-mcp`` in ``pyproject.toml``.
 """
 
 from __future__ import annotations
@@ -11,11 +11,11 @@ import logging
 import os
 import sys
 
-from fastmcp_server_template.config import _ENV_PREFIX, get_log_level
+from kroki_mcp.config import _ENV_PREFIX, get_log_level
 
 logger = logging.getLogger(__name__)
 
-_PROG = "mcp-server"
+_PROG = "kroki-mcp"
 _DEFAULT_HTTP_PATH = "/mcp"
 
 
@@ -40,11 +40,10 @@ def _normalise_http_path(path: str | None) -> str:
 def _cmd_serve(args: argparse.Namespace) -> None:
     """Run the MCP server."""
     try:
-        from fastmcp_server_template.mcp_server import build_event_store, create_server
+        from kroki_mcp.mcp_server import build_event_store, create_server
     except ImportError:
         logger.error(
-            "FastMCP is not installed. Install with: "
-            "pip install fastmcp-server-template[mcp]"
+            "FastMCP is not installed. Install with: pip install kroki-mcp[mcp]"
         )
         sys.exit(1)
 
@@ -62,7 +61,7 @@ def _cmd_serve(args: argparse.Namespace) -> None:
         except ImportError:
             logger.error(
                 "HTTP transport requires uvicorn. Install with: "
-                "pip install 'fastmcp-server-template[mcp]'"
+                "pip install 'kroki-mcp[mcp]'"
             )
             sys.exit(1)
 

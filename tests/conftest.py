@@ -7,12 +7,14 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Remove all MCP_SERVER_* env vars before each test.
+    """Remove all KROKI_MCP_* env vars before each test.
 
     Prevents env var leakage between tests that call :func:`create_server`.
+    Sets KROKI_MCP_KROKI_URL to a default so create_server() doesn't fail.
     """
     import os
 
     for key in list(os.environ):
-        if key.startswith("MCP_SERVER_"):
+        if key.startswith("KROKI_MCP_"):
             monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("KROKI_MCP_KROKI_URL", "http://kroki.test:8000")

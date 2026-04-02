@@ -1,6 +1,6 @@
 """Configuration loading from environment variables.
 
-All environment variables share the ``MCP_SERVER_`` prefix (controlled by
+All environment variables share the ``KROKI_MCP_`` prefix (controlled by
 :data:`_ENV_PREFIX`).  Add your domain-specific configuration fields to
 :class:`ServerConfig` and read them in :func:`load_config`.
 """
@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 # Change this to match your service.  All env vars will be prefixed with it.
 # e.g. _ENV_PREFIX = "WEATHER_MCP" → WEATHER_MCP_READ_ONLY, WEATHER_MCP_PORT …
 # ---------------------------------------------------------------------------
-_ENV_PREFIX = "MCP_SERVER"
+_ENV_PREFIX = "KROKI_MCP"
 
 
 def get_log_level() -> int:
-    """Return the configured log level from ``MCP_SERVER_LOG_LEVEL``.
+    """Return the configured log level from ``KROKI_MCP_LOG_LEVEL``.
 
     Accepts standard Python level names (``DEBUG``, ``INFO``, ``WARNING``,
     ``ERROR``).  Falls back to :data:`logging.INFO` when the variable is
@@ -71,43 +71,47 @@ def _parse_bool(value: str) -> bool:
 class ServerConfig:
     """Server configuration loaded from environment variables.
 
-    Add your domain-specific fields here.  Use :func:`load_config` to
-    populate them from environment variables at startup.
-
     Attributes:
         read_only: When ``True`` (default), write-tagged tools are hidden via
             ``mcp.disable(tags={"write"})``.
-
-    Example::
-
-        # TODO: replace with your domain fields, e.g.:
-        # data_dir: Path = Path("/data")
-        # max_results: int = 50
+        kroki_url: Base URL of the self-hosted Kroki instance, always with a
+            trailing slash so httpx resolves subpath-relative requests correctly.
     """
 
     read_only: bool = True
+    kroki_url: str = ""
 
 
 def load_config() -> ServerConfig:
     """Load configuration from environment variables.
 
-    Currently reads:
+    Reads:
 
-    - ``MCP_SERVER_READ_ONLY``: disable write tools; default ``true``.
-
-    TODO: Add your domain-specific env vars here and populate the
-    corresponding :class:`ServerConfig` fields.
+    - ``KROKI_MCP_READ_ONLY``: disable write tools; default ``true``.
+    - ``KROKI_MCP_KROKI_URL``: base URL of the self-hosted Kroki instance
+      (required).
 
     Returns:
         A populated :class:`ServerConfig` instance.
 
-    Example::
-
-        config = load_config()
-        # config.read_only == True by default
+    Raises:
+        ValueError: If ``KROKI_MCP_KROKI_URL`` is unset or empty.
     """
     raw_read_only = _env("READ_ONLY")
     read_only = _parse_bool(raw_read_only) if raw_read_only is not None else True
     logger.debug("load_config: read_only=%s (raw=%r)", read_only, raw_read_only)
 
-    return ServerConfig(read_only=read_only)
+    raw_kroki_url = (_env("KROKI_URL") or "").strip()
+    if not raw_kroki_url:
+        msg = (
+            "KROKI_MCP_KROKI_URL is required. "
+            "Set it to the URL of your self-hosted Kroki instance "
+            "(e.g. http://localhost:8000)."
+        )
+        raise ValueError(msg)
+    # Normalise: always end with a trailing slash so httpx merges relative
+    # request paths (e.g. "plantuml/svg") correctly, even when Kroki is
+    # mounted on a subpath like http://host/kroki/.
+    kroki_url = raw_kroki_url.rstrip("/") + "/"
+
+    return ServerConfig(read_only=read_only, kroki_url=kroki_url)

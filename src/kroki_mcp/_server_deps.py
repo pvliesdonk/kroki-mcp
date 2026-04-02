@@ -3,8 +3,8 @@
 Provides :func:`get_service` and :func:`make_service_lifespan` which are
 imported by the tool, resource, and prompt registration modules.
 
-TODO: Replace ``MyService`` / the placeholder dict with your actual business
-object (database connection, API client, in-memory index, etc.).
+The service object is an :class:`httpx.AsyncClient` pointed at the
+self-hosted Kroki instance.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import httpx
 from fastmcp import FastMCP
 from fastmcp.dependencies import CurrentContext
 from fastmcp.server.context import Context
@@ -20,7 +21,7 @@ from fastmcp.server.lifespan import lifespan
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-    from fastmcp_server_template.config import ServerConfig
+    from kroki_mcp.config import ServerConfig
 
 logger = logging.getLogger(__name__)
 
@@ -29,13 +30,13 @@ def make_service_lifespan(config: ServerConfig) -> Any:
     """Create a lifespan function that closes over a pre-loaded config.
 
     Args:
-        config: A fully-loaded :class:`~fastmcp_server_template.config.ServerConfig`
+        config: A fully-loaded :class:`~kroki_mcp.config.ServerConfig`
             instance produced by a single :func:`load_config` call in
-            :func:`~fastmcp_server_template.mcp_server.create_server`.
+            :func:`~kroki_mcp.mcp_server.create_server`.
 
     Returns:
-        A FastMCP lifespan coroutine that initialises the service object and
-        yields ``{"service": service, "config": config}`` to the lifespan
+        A FastMCP lifespan coroutine that initialises the httpx client and
+        yields ``{"service": client, "config": config}`` to the lifespan
         context.
     """
 
@@ -43,30 +44,29 @@ def make_service_lifespan(config: ServerConfig) -> Any:
     async def _service_lifespan(
         server: FastMCP,  # noqa: ARG001
     ) -> AsyncIterator[dict[str, Any]]:
-        """Initialise the service at server startup, tear down on shutdown."""
-        logger.info("Service starting up (read_only=%s)", config.read_only)
+        """Initialise the httpx client at startup, close on shutdown."""
+        logger.info(
+            "Kroki client starting (base_url=%s, read_only=%s)",
+            config.kroki_url,
+            config.read_only,
+        )
 
-        # TODO: Replace this placeholder with your real service initialisation.
-        # Examples:
-        #   service = MyDatabase(config.data_dir)
-        #   await service.connect()
-        #   service = MyApiClient(api_key=config.api_key)
-        service: dict[str, Any] = {"ready": True}
+        client = httpx.AsyncClient(
+            base_url=config.kroki_url,
+            timeout=30.0,
+        )
 
         try:
-            yield {"service": service, "config": config}
+            yield {"service": client, "config": config}
         finally:
-            # TODO: Add teardown logic here.
-            # Examples:
-            #   await service.close()
-            #   service.flush()
-            logger.info("Service shut down")
+            await client.aclose()
+            logger.info("Kroki client shut down")
 
     return _service_lifespan
 
 
-def get_service(ctx: Context = CurrentContext()) -> Any:
-    """Resolve the service object from lifespan context.
+def get_service(ctx: Context = CurrentContext()) -> httpx.AsyncClient:
+    """Resolve the httpx client from lifespan context.
 
     Used as a ``Depends()`` default in tool/resource/prompt signatures.
 
@@ -77,4 +77,4 @@ def get_service(ctx: Context = CurrentContext()) -> Any:
     if service is None:
         msg = "Service not initialised — server lifespan has not run"
         raise RuntimeError(msg)
-    return service
+    return service  # type: ignore[no-any-return]
