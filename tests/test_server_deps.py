@@ -41,7 +41,11 @@ class TestServiceLifespan:
 
         health_body = {
             "status": "pass",
-            "version": {"graphviz": "9.0.0", "mermaid": "11.0.0", "plantuml": "1.2026.1"},
+            "version": {
+                "graphviz": "9.0.0",
+                "mermaid": "11.0.0",
+                "plantuml": "1.2026.1",
+            },
         }
         config = ServerConfig(kroki_url="http://kroki.test:8000/")
         lifespan_fn = make_service_lifespan(config)
@@ -52,7 +56,9 @@ class TestServiceLifespan:
         mcp._lifespan = lifespan_fn
 
         with respx.mock(base_url="http://kroki.test:8000") as router:
-            router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
+            router.get("/health").mock(
+                return_value=httpx.Response(200, json=health_body)
+            )
             async with mcp._lifespan_manager():
                 available = mcp._lifespan_result.get("available")
                 assert isinstance(available, frozenset)
@@ -78,7 +84,9 @@ class TestProbeAvailableTypes:
             },
         }
         with respx.mock(base_url="http://kroki.test:8000") as router:
-            router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
+            router.get("/health").mock(
+                return_value=httpx.Response(200, json=health_body)
+            )
             async with httpx.AsyncClient(base_url="http://kroki.test:8000/") as client:
                 result = await _probe_available_types(client)
 
@@ -106,7 +114,9 @@ class TestProbeAvailableTypes:
         from kroki_mcp._server_deps import _probe_available_types
 
         with respx.mock(base_url="http://kroki.test:8000") as router:
-            router.get("/health").mock(return_value=httpx.Response(503, text="unavailable"))
+            router.get("/health").mock(
+                return_value=httpx.Response(503, text="unavailable")
+            )
             async with httpx.AsyncClient(base_url="http://kroki.test:8000/") as client:
                 result = await _probe_available_types(client)
 
@@ -134,7 +144,9 @@ class TestProbeAvailableTypes:
         health_body = {"status": "pass", "version": version_keys}
 
         with respx.mock(base_url="http://kroki.test:8000") as router:
-            router.get("/health").mock(return_value=httpx.Response(200, json=health_body))
+            router.get("/health").mock(
+                return_value=httpx.Response(200, json=health_body)
+            )
             async with httpx.AsyncClient(base_url="http://kroki.test:8000/") as client:
                 result = await _probe_available_types(client)
 
