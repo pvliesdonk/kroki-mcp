@@ -135,6 +135,23 @@ class TestProbeAvailableTypes:
 
         assert result == frozenset(DIAGRAM_TYPES)
 
+    async def test_empty_intersection_returns_full_registry(self) -> None:
+        """Health response with no matching DIAGRAM_TYPES keys -> full registry returned."""
+        from kroki_mcp._server_deps import _probe_available_types
+
+        health_body = {
+            "status": "pass",
+            "version": {"dot": "9.0.0", "kroki": {"number": "0.30.1"}},
+        }
+        with respx.mock(base_url="http://kroki.test:8000") as router:
+            router.get("/health").mock(
+                return_value=httpx.Response(200, json=health_body)
+            )
+            async with httpx.AsyncClient(base_url="http://kroki.test:8000/") as client:
+                result = await _probe_available_types(client)
+
+        assert result == frozenset(DIAGRAM_TYPES)
+
     async def test_only_known_types_returned(self) -> None:
         """Probe only returns keys that exist in DIAGRAM_TYPES."""
         from kroki_mcp._server_deps import _probe_available_types

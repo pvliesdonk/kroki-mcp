@@ -50,23 +50,32 @@ async def _probe_available_types(client: httpx.AsyncClient) -> frozenset[str]:
         registry — so the server degrades gracefully.
     """
     try:
-        response = await client.get("health")
+        response = await client.get("health", timeout=5.0)
         response.raise_for_status()
         data = response.json()
         version_keys = set(data.get("version", {}).keys())
         available = frozenset(k for k in version_keys if k in DIAGRAM_TYPES)
+        if not available:
+            logger.warning(
+                "Health probe at %s returned no recognised diagram types — "
+                "falling back to static registry.",
+                str(client.base_url),
+            )
+            return frozenset(DIAGRAM_TYPES)
         logger.info(
             "Health probe: %d/%d diagram types available on this instance",
             len(available),
             len(DIAGRAM_TYPES),
         )
         return available
-    except Exception:
+    except Exception as exc:
         logger.warning(
             "Could not reach GET /health at %s — falling back to static type registry. "
-            "All %d types will be offered but some may not be available.",
+            "All %d types will be offered but some may not be available. Reason: %s",
             str(client.base_url),
             len(DIAGRAM_TYPES),
+            exc,
+            exc_info=True,
         )
         return frozenset(DIAGRAM_TYPES)
 
@@ -103,8 +112,9 @@ def make_service_lifespan(config: ServerConfig) -> Any:
             config.read_only,
         )
 
-        # Probe uses a short-lived client; the long-lived service client is
-        # created below so it starts in a clean, unopened state.
+        # Probe uses a short-lived client; the long-lived service client must
+        # start in an unopened state because FastMCP's dependency injection
+        # calls __aenter__ on it when resolving Depends(get_service).
         async with httpx.AsyncClient(
             base_url=config.kroki_url,
             timeout=30.0,

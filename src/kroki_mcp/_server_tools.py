@@ -69,9 +69,15 @@ def register_tools(mcp: FastMCP, *, transport: str = "stdio") -> None:
         """
         diagram_type = diagram_type.lower().strip()
 
-        if diagram_type not in available:
+        if diagram_type not in DIAGRAM_TYPES:
             return (
                 f"Unknown diagram type '{diagram_type}'. "
+                "Use list_diagram_types to see what is available on this instance."
+            )
+
+        if diagram_type not in available:
+            return (
+                f"Diagram type '{diagram_type}' is not available on this Kroki instance. "
                 "Use list_diagram_types to see what is available on this instance."
             )
 

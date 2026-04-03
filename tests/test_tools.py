@@ -228,7 +228,7 @@ class TestAvailableFiltering:
                     "render_diagram",
                     {"diagram_type": "mermaid", "source": "graph TD; A-->B"},
                 )
-                assert "Unknown diagram type" in result.content[0].text
+                assert "not available on this Kroki instance" in result.content[0].text
 
     async def test_render_diagram_type_in_available(
         self, mock_kroki: respx.MockRouter
