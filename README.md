@@ -19,7 +19,7 @@ kroki-mcp serve
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `KROKI_MCP_KROKI_URL` | **Yes** | — | URL of your self-hosted Kroki instance (e.g. `http://localhost:8000`) |
+| `KROKI_MCP_KROKI_URL` | No | `https://kroki.io` | URL of your Kroki instance. Defaults to the public instance — **not suitable for production** (diagram source is sent to a third-party server). |
 | `KROKI_MCP_READ_ONLY` | No | `true` | Disable write tools |
 | `KROKI_MCP_LOG_LEVEL` | No | `INFO` | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
 | `KROKI_MCP_SERVER_NAME` | No | `kroki-mcp` | Server name shown to clients |
